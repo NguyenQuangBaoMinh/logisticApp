@@ -1,67 +1,68 @@
 // src/services/supplierService.js
-import axios from 'axios';
+import api from '../configs/Apis';
 
-const API_BASE_URL = 'http://localhost:8080/api/suppliers';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-export const supplierService = {
+const supplierService = {
   // Get all suppliers with filters
   getSuppliers: (params = {}) => {
-    return api.get('', { params });
+    console.log('Service: getSuppliers with params:', params);
+    return api.get('/suppliers', { params });
   },
 
   // Get active suppliers only
   getActiveSuppliers: () => {
-    return api.get('/active');
+    console.log('Service: getActiveSuppliers');
+    return api.get('/suppliers/active');
   },
 
   // Search suppliers by name
   searchSuppliers: (name, active = null, sort = null) => {
+    console.log('Service: searchSuppliers', { name, active, sort });
     const params = { name };
     if (active !== null) params.active = active;
     if (sort !== null) params.sort = sort;
-    return api.get('/search', { params });
+    return api.get('/suppliers/search', { params });
   },
 
   // Get supplier by ID
   getSupplierById: (id) => {
-    return api.get(`/${id}`);
+    console.log('Service: getSupplierById', id);
+    return api.get(`/suppliers/${id}`);
   },
 
   // Create new supplier
   createSupplier: (supplier) => {
-    return api.post('', supplier);
+    console.log('Service: createSupplier', supplier);
+    return api.post('/suppliers', supplier);
   },
 
   // Update supplier
   updateSupplier: (id, supplier) => {
-    return api.put(`/${id}`, supplier);
+    console.log('Service: updateSupplier', id, supplier);
+    return api.put(`/suppliers/${id}`, supplier);
   },
 
   // Delete supplier
   deleteSupplier: (id) => {
-    return api.delete(`/${id}`);
+    console.log('Service: deleteSupplier', id);
+    return api.delete(`/suppliers/${id}`);
   },
 
   // Toggle supplier active status
   toggleSupplierStatus: (id) => {
-    return api.put(`/${id}/toggle-active`);
+    console.log('Service: toggleSupplierStatus', id);
+    return api.put(`/suppliers/${id}/toggle-active`);
   },
 
   // Update supplier rating
   updateSupplierRating: (id, rating) => {
-    return api.put(`/${id}/rating`, { rating });
+    console.log('Service: updateSupplierRating', id, rating);
+    return api.put(`/suppliers/${id}/rating`, { rating });
   },
 
   // Get suppliers count
   getSuppliersCount: () => {
-    return api.get('/count');
+    console.log('Service: getSuppliersCount');
+    return api.get('/suppliers/count');
   }
 };
 

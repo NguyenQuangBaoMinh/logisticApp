@@ -39,7 +39,7 @@ const Footer = () => {
         <Row>
           <Col className="text-center">
             <p className="mb-0">
-              © 2024 Supply Chain Management System. All rights reserved.
+              © 2025 Supply Chain Management System. All rights reserved.
             </p>
           </Col>
         </Row>

@@ -1,0 +1,237 @@
+/* src/styles/Header.css */
+
+/* Modern Header Styles - High specificity */
+.modern-header {
+    background: #4F46E5 !important;
+    color: white !important;
+    padding: 1rem 0 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    position: relative !important;
+    width: 100% !important;
+  }
+  
+  .modern-header .header-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0 20px !important;
+    height: auto !important;
+  }
+  
+  /* Force layout */
+  .modern-header .header-left {
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+  }
+  
+  .modern-header .header-center {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 !important;
+    text-align: center !important;
+  }
+  
+  .modern-header .header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+  }
+  
+  /* System title */
+  .modern-header .system-title {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin: 0 !important;
+    text-align: center !important;
+  }
+  
+  /* Button styling - Same for all buttons */
+  .modern-header .header-button,
+  .modern-header .auth-button,
+  .modern-header .logout-button {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    text-decoration: none !important;
+    backdrop-filter: blur(10px) !important;
+    box-sizing: border-box !important;
+  }
+  
+  .modern-header .header-button:hover,
+  .modern-header .auth-button:hover,
+  .modern-header .logout-button:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  /* Home dropdown button */
+  .modern-header .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .modern-header .dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .modern-header .home-link {
+    color: white !important;
+    text-decoration: none !important;
+  }
+  
+  .modern-header .dropdown-arrow {
+    font-size: 0.8rem !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  /* Dropdown Menu */
+  .modern-header .dropdown-container {
+    position: relative !important;
+  }
+  
+  .modern-header .dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 0.5rem) !important;
+    left: 0 !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 0.5rem 0 !important;
+    min-width: 200px !important;
+    z-index: 1000 !important;
+    border: 1px solid #e5e7eb !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .modern-header .dropdown-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    color: #374151 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    font-weight: 500 !important;
+  }
+  
+  .modern-header .dropdown-item:hover {
+    background: #f3f4f6 !important;
+    color: #4F46E5 !important;
+  }
+  
+  .modern-header .item-icon {
+    font-size: 1.1rem !important;
+    width: 20px !important;
+    text-align: center !important;
+  }
+  
+  .modern-header .dropdown-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 999 !important;
+  }
+  
+  /* User menu */
+  .modern-header .user-menu {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+  }
+  
+  .modern-header .user-greeting {
+    color: white !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+  }
+  
+  /* Logout button specific styling */
+  .modern-header .logout-button {
+    background: rgba(239, 68, 68, 0.8) !important;
+    border: 1px solid rgba(239, 68, 68, 0.9) !important;
+  }
+  
+  .modern-header .logout-button:hover {
+    background: rgba(239, 68, 68, 0.9) !important;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .modern-header .header-container {
+      flex-direction: column !important;
+      gap: 1rem !important;
+      padding: 1rem 20px !important;
+    }
+    
+    .modern-header .header-left,
+    .modern-header .header-center,
+    .modern-header .header-right {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+    
+    .modern-header .system-title {
+      font-size: 1.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    .modern-header .user-greeting {
+      display: none !important;
+    }
+    
+    .modern-header .dropdown-menu {
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .modern-header .header-container {
+      padding: 1rem 15px !important;
+    }
+    
+    .modern-header .system-title {
+      font-size: 1.25rem !important;
+    }
+    
+    .modern-header .header-button,
+    .modern-header .auth-button,
+    .modern-header .logout-button {
+      padding: 0.6rem 1.2rem !important;
+      font-size: 0.9rem !important;
+    }
+    
+    .modern-header .dropdown-menu {
+      min-width: 180px !important;
+    }
+  }

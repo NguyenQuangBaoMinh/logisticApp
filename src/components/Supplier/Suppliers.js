@@ -1,334 +1,352 @@
 // src/components/Supplier/Suppliers.js
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Button, Card, Alert, Modal, Spinner, Badge } from 'react-bootstrap';
-import { supplierService } from '../../services/supplierService';
-import SupplierForm from './SupplierForm';
-import SupplierFilter from './SupplierFilter';
+import supplierService from '../../services/supplierService';
 
-const Suppliers = () => {
+const Suppliers = ({ onEdit, onError, onSuccess }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Search and filter states
-  const [searchName, setSearchName] = useState('');
-  const [filterActive, setFilterActive] = useState('');
-  const [sortBy, setSortBy] = useState('');
-  
-  // Modal states
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
 
+  // Fetch suppliers on component mount and when filters change
   useEffect(() => {
     fetchSuppliers();
-  }, [currentPage, searchName, filterActive, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage, activeFilter]);
 
+  // Fetch suppliers from API
   const fetchSuppliers = async () => {
+    setLoading(true);
+    
     try {
-      setLoading(true);
+      console.log('🔄 Fetching suppliers...', { currentPage, activeFilter });
+      
+      // Prepare parameters for API call
       const params = {
         page: currentPage
       };
       
-      if (searchName) params.name = searchName;
-      if (filterActive) params.active = filterActive;
-      if (sortBy) params.sort = sortBy;
+      if (activeFilter !== null) {
+        params.active = activeFilter.toString();
+      }
+      
+      console.log('📤 API parameters:', params);
       
       const response = await supplierService.getSuppliers(params);
-      setSuppliers(response.data.suppliers);
-      setTotalCount(response.data.totalCount);
-      setError(null);
+      
+      console.log('📥 API Response:', response);
+      console.log('📦 Response data:', response.data);
+      
+      // Backend returns: { suppliers: [...], totalCount: x, currentPage: y }
+      if (response && response.data) {
+        if (response.data.suppliers && Array.isArray(response.data.suppliers)) {
+          console.log('✅ Setting suppliers:', response.data.suppliers.length, 'items');
+          setSuppliers(response.data.suppliers);
+          setTotalCount(response.data.totalCount || 0);
+        } else if (Array.isArray(response.data)) {
+          // If response.data is directly an array
+          console.log('✅ Setting suppliers directly:', response.data.length, 'items');
+          setSuppliers(response.data);
+          setTotalCount(response.data.length);
+        } else {
+          console.error('❌ Invalid response structure:', response.data);
+          onError && onError('Dữ liệu trả về từ server không hợp lệ');
+        }
+      } else {
+        console.error('❌ No response data');
+        onError && onError('Không nhận được dữ liệu từ server');
+      }
     } catch (err) {
-      setError('Lỗi khi tải danh sách nhà cung cấp');
-      console.error('Error fetching suppliers:', err);
+      console.error('❌ Error fetching suppliers:', err);
+      console.error('Error details:', err.response);
+      
+      if (err.response) {
+        onError && onError(`Lỗi ${err.response.status}: ${err.response.data.message || 'Không thể tải dữ liệu'}`);
+      } else if (err.request) {
+        onError && onError('Không thể kết nối đến server. Vui lòng kiểm tra backend có đang chạy không.');
+      } else {
+        onError && onError(`Lỗi: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = () => {
+  // Handle search
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    
+    if (!searchTerm.trim()) {
+      fetchSuppliers();
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      console.log('🔍 Searching for:', searchTerm);
+      
+      const response = await supplierService.searchSuppliers(
+        searchTerm, 
+        activeFilter !== null ? activeFilter.toString() : null
+      );
+      
+      console.log('🔍 Search results:', response);
+      
+      // Search endpoint returns array directly
+      if (response && response.data && Array.isArray(response.data)) {
+        setSuppliers(response.data);
+        setTotalCount(response.data.length);
+      } else {
+        onError && onError('Không tìm thấy kết quả nào');
+      }
+    } catch (err) {
+      console.error('❌ Search error:', err);
+      onError && onError(`Lỗi tìm kiếm: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchTerm('');
     setCurrentPage(1);
     fetchSuppliers();
   };
 
-  const handleCreateSupplier = async (supplier) => {
-    try {
-      const response = await supplierService.createSupplier(supplier);
-      if (response.data.success) {
-        setShowAddModal(false);
-        fetchSuppliers();
-        setError(null);
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Lỗi khi tạo nhà cung cấp');
-    }
+  // Handle filter change
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setActiveFilter(value === '' ? null : value === 'true');
+    setCurrentPage(1);
   };
 
-  const handleUpdateSupplier = async (supplier) => {
-    try {
-      const response = await supplierService.updateSupplier(selectedSupplier.id, supplier);
-      if (response.data.success) {
-        setShowEditModal(false);
-        setSelectedSupplier(null);
-        fetchSuppliers();
-        setError(null);
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật nhà cung cấp');
-    }
-  };
-
-  const handleDeleteSupplier = async () => {
-    try {
-      const response = await supplierService.deleteSupplier(selectedSupplier.id);
-      if (response.data.success) {
-        setShowDeleteModal(false);
-        setSelectedSupplier(null);
-        fetchSuppliers();
-        setError(null);
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Lỗi khi xóa nhà cung cấp');
-    }
-  };
-
+  // Toggle supplier active status
   const handleToggleStatus = async (id) => {
     try {
+      console.log('🔄 Toggling status for supplier:', id);
+      
       const response = await supplierService.toggleSupplierStatus(id);
-      if (response.data.success) {
-        fetchSuppliers();
-        setError(null);
+      
+      console.log('✅ Toggle response:', response);
+      
+      if (response && response.data && response.data.success) {
+        console.log('✅ Status updated successfully');
+        onSuccess && onSuccess('Cập nhật trạng thái thành công!');
+        fetchSuppliers(); // Refresh the list
       } else {
-        throw new Error(response.data.message);
+        onError && onError(response.data.message || 'Không thể cập nhật trạng thái');
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Lỗi khi thay đổi trạng thái');
+      console.error('❌ Toggle error:', err);
+      onError && onError(`Lỗi cập nhật trạng thái: ${err.response?.data?.message || err.message}`);
     }
   };
 
-  const getRatingStars = (rating) => {
-    if (!rating) return '-';
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  // Handle delete
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')) {
+      return;
+    }
+    
+    try {
+      console.log('🗑 Deleting supplier:', id);
+      
+      const response = await supplierService.deleteSupplier(id);
+      
+      console.log('✅ Delete response:', response);
+      
+      if (response && response.data && response.data.success) {
+        console.log('✅ Supplier deleted successfully');
+        onSuccess && onSuccess('Xóa nhà cung cấp thành công!');
+        fetchSuppliers(); // Refresh the list
+      } else {
+        onError && onError(response.data.message || 'Không thể xóa nhà cung cấp');
+      }
+    } catch (err) {
+      console.error('❌ Delete error:', err);
+      onError && onError(`Lỗi xóa nhà cung cấp: ${err.response?.data?.message || err.message}`);
+    }
   };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('vi-VN');
-  };
-
-  if (loading && suppliers.length === 0) {
-    return (
-      <Container className="text-center mt-5">
-        <Spinner animation="border" role="status" variant="primary">
-          <span className="visually-hidden">Đang tải...</span>
-        </Spinner>
-      </Container>
-    );
-  }
 
   return (
-    <Container className="mt-4">
-      <Row className="mb-4">
-        <Col>
-          <h2 className="text-primary">Quản lý nhà cung cấp</h2>
-        </Col>
-      </Row>
+    <div className="suppliers-container">
+      {/* Search and filters */}
+      <div className="suppliers-controls">
+        <div className="search-controls">
+          <form onSubmit={handleSearch} className="search-form">
+            <div className="search-input-group">
+              <input
+                type="text"
+                placeholder="Tìm kiếm nhà cung cấp..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <button type="submit" disabled={loading} className="search-btn">
+                <span>🔍</span> Tìm kiếm
+              </button>
+              {searchTerm && (
+                <button 
+                  type="button"
+                  onClick={handleClearSearch}
+                  disabled={loading}
+                  className="clear-btn"
+                >
+                  Xóa
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+        
+        <div className="filter-controls">
+          <select 
+            value={activeFilter === null ? '' : activeFilter.toString()}
+            onChange={handleFilterChange}
+            disabled={loading}
+            className="filter-select"
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="true">Đang hoạt động</option>
+            <option value="false">Ngừng hoạt động</option>
+          </select>
+        </div>
+      </div>
 
-      {error && (
-        <Alert variant="danger" onClose={() => setError(null)} dismissible>
-          {error}
-        </Alert>
+      {/* Loading spinner */}
+      {loading && (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
       )}
 
-      {/* Search and Filter */}
-      <Card className="mb-4">
-        <Card.Body>
-          <SupplierFilter
-            searchName={searchName}
-            setSearchName={setSearchName}
-            filterActive={filterActive}
-            setFilterActive={setFilterActive}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            onSearch={handleSearch}
-            loading={loading}
-          />
-        </Card.Body>
-      </Card>
-
-      {/* Action Buttons */}
-      <Row className="mb-3">
-        <Col>
-          <Button 
-            variant="primary" 
-            onClick={() => setShowAddModal(true)}
-          >
-            <i className="fas fa-plus"></i> Thêm nhà cung cấp
-          </Button>
-        </Col>
-        <Col xs="auto">
-          <small className="text-muted">
-            Hiển thị {suppliers.length} / {totalCount} nhà cung cấp
-          </small>
-        </Col>
-      </Row>
-
-      {/* Suppliers Table */}
-      <Card>
-        <Card.Body>
-          <Table responsive hover>
-            <thead className="table-dark">
+      {/* Suppliers table */}
+      {!loading && (
+        <div className="table-container">
+          <table className="suppliers-table">
+            <thead>
               <tr>
-                <th>Tên</th>
+                <th>ID</th>
+                <th>Tên nhà cung cấp</th>
                 <th>Email</th>
-                <th>Điện thoại</th>
+                <th>Số điện thoại</th>
                 <th>Địa chỉ</th>
-                <th>Người liên hệ</th>
-                <th>Trạng thái</th>
                 <th>Đánh giá</th>
+                <th>Trạng thái</th>
                 <th>Ngày tạo</th>
-                <th>Hành động</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {suppliers.map(supplier => (
-                <tr key={supplier.id}>
-                  <td><strong>{supplier.name}</strong></td>
-                  <td>{supplier.email || '-'}</td>
-                  <td>{supplier.phoneNumber || '-'}</td>
-                  <td>{supplier.address || '-'}</td>
-                  <td>{supplier.contactPerson || '-'}</td>
-                  <td>
-                    <Badge bg={supplier.active ? 'success' : 'secondary'}>
-                      {supplier.active ? 'Hoạt động' : 'Không hoạt động'}
-                    </Badge>
-                  </td>
-                  <td>{getRatingStars(supplier.rating)}</td>
-                  <td>{formatDate(supplier.createdDate)}</td>
-                  <td>
-                    <div className="d-flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline-primary"
-                        onClick={() => {
-                          setSelectedSupplier(supplier);
-                          setShowEditModal(true);
-                        }}
-                        title="Chỉnh sửa"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={supplier.active ? "outline-warning" : "outline-success"}
-                        onClick={() => handleToggleStatus(supplier.id)}
-                        title={supplier.active ? "Tạm dừng" : "Kích hoạt"}
-                      >
-                        <i className={`fas fa-${supplier.active ? 'pause' : 'play'}`}></i>
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline-danger"
-                        onClick={() => {
-                          setSelectedSupplier(supplier);
-                          setShowDeleteModal(true);
-                        }}
-                        title="Xóa"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </Button>
-                    </div>
+              {suppliers.length > 0 ? (
+                suppliers.map((supplier) => (
+                  <tr key={supplier.id}>
+                    <td>{supplier.id}</td>
+                    <td>
+                      <div className="supplier-name">
+                        <strong>{supplier.name}</strong>
+                        {supplier.contactPerson && (
+                          <div className="contact-person">Người liên hệ: {supplier.contactPerson}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td>{supplier.email}</td>
+                    <td>{supplier.phoneNumber}</td>
+                    <td>{supplier.address}</td>
+                    <td>
+                      {supplier.rating ? (
+                        <div className="rating">
+                          <span className="stars">
+                            {'★'.repeat(supplier.rating)}{'☆'.repeat(5 - supplier.rating)}
+                          </span>
+                          <div className="rating-text">{supplier.rating}/5</div>
+                        </div>
+                      ) : (
+                        <span className="no-rating">Chưa đánh giá</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${supplier.active ? 'status-active' : 'status-inactive'}`}>
+                        {supplier.active ? "Đang hoạt động" : "Ngừng hoạt động"}
+                      </span>
+                    </td>
+                    <td>
+                      {supplier.createdDate ? new Date(supplier.createdDate).toLocaleDateString('vi-VN') : '-'}
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button 
+                          className="action-btn edit-btn" 
+                          onClick={() => onEdit && onEdit(supplier)}
+                          disabled={loading}
+                          title="Chỉnh sửa"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className={`action-btn toggle-btn ${supplier.active ? 'toggle-off' : 'toggle-on'}`}
+                          onClick={() => handleToggleStatus(supplier.id)}
+                          disabled={loading}
+                          title={supplier.active ? "Vô hiệu hóa" : "Kích hoạt"}
+                        >
+                          {supplier.active ? '🔒' : '🔓'}
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleDelete(supplier.id)}
+                          disabled={loading}
+                          title="Xóa"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="9" className="no-data">
+                    Không có dữ liệu nhà cung cấp
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
-          </Table>
-
-          {suppliers.length === 0 && !loading && (
-            <div className="text-center py-4">
-              <p className="text-muted">Không có nhà cung cấp nào</p>
-            </div>
-          )}
-        </Card.Body>
-      </Card>
-
+          </table>
+        </div>
+      )}
+      
       {/* Pagination */}
-      <nav className="mt-3">
-        <ul className="pagination justify-content-center">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+      {!loading && (
+        <div className="pagination-container">
+          <div className="pagination-info">
+            <span>Hiển thị {suppliers.length} / {totalCount} nhà cung cấp</span>
+          </div>
+          <div className="pagination-controls">
             <button
-              className="page-link"
+              className="pagination-btn"
+              disabled={currentPage === 1 || loading}
               onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
             >
-              <i className="fas fa-chevron-left"></i> Trước
+              Trang trước
             </button>
-          </li>
-          
-          <li className="page-item active">
-            <span className="page-link">{currentPage}</span>
-          </li>
-          
-          <li className="page-item">
+            <span className="pagination-current">
+              Trang {currentPage}
+            </span>
             <button
-              className="page-link"
+              className="pagination-btn"
+              disabled={suppliers.length < 10 || loading}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
-              Sau <i className="fas fa-chevron-right"></i>
+              Trang sau
             </button>
-          </li>
-        </ul>
-      </nav>
-
-      {/* Modals */}
-      <SupplierForm
-        show={showAddModal}
-        onHide={() => setShowAddModal(false)}
-        onSubmit={handleCreateSupplier}
-        title="Thêm nhà cung cấp mới"
-      />
-
-      <SupplierForm
-        show={showEditModal}
-        onHide={() => {
-          setShowEditModal(false);
-          setSelectedSupplier(null);
-        }}
-        onSubmit={handleUpdateSupplier}
-        supplier={selectedSupplier}
-        title="Cập nhật nhà cung cấp"
-      />
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Xác nhận xóa</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Bạn có chắc chắn muốn xóa nhà cung cấp <strong>{selectedSupplier?.name}</strong> không?
-          <br />
-          <small className="text-muted">Hành động này không thể hoàn tác.</small>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Hủy
-          </Button>
-          <Button variant="danger" onClick={handleDeleteSupplier}>
-            Xóa
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

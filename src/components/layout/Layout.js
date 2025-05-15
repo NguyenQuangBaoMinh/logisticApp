@@ -3,16 +3,13 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 
-// Layout wrapper component
 const Layout = ({ children }) => {
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className="layout">
       <Header />
-      
-      <main className="flex-grow-1">
+      <main className="main-content">
         {children}
       </main>
-      
       <Footer />
     </div>
   );

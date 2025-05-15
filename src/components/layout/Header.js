@@ -1,66 +1,109 @@
 // src/components/layout/Header.js
-import React from 'react';
-import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const authenticated = authService.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      if (authenticated) {
+        setUser(authService.getCurrentUser());
+      }
+    };
+
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  const handleLogout = async () => {
+    await authService.logout();
+    setIsAuthenticated(false);
+    setUser(null);
+    navigate('/');
+  };
+
+  const menuItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/suppliers', label: 'Nhà cung cấp', icon: '🏢' },
+    { path: '/orders', label: 'Đơn hàng', icon: '📦' },
+    { path: '/inventory', label: 'Kho hàng', icon: '🏭' },
+    { path: '/shipping', label: 'Vận chuyển', icon: '🚚' },
+  ];
+
   return (
-    <Navbar bg="primary" variant="dark" expand="lg" sticky="top">
-      <Container>
-        <Navbar.Brand as={Link} to="/">
-          <i className="fas fa-truck"></i> Hệ thống quản lý chuỗi cung ứng
-        </Navbar.Brand>
-        
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        
-        <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">
-              <i className="fas fa-home"></i> Trang chủ
-            </Nav.Link>
+    <header className="modern-header">
+      <div className="header-container">
+        {/* Left side - Home dropdown button */}
+        <div className="header-left">
+          <div className="dropdown-container">
+            <button 
+              className="header-button dropdown-toggle"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <Link to="/" className="home-link">Trang chủ</Link>
+              <span className="dropdown-arrow">▼</span>
+            </button>
             
-            <NavDropdown title={<><i className="fas fa-cogs"></i> Quản lý</>} id="manage-dropdown">
-              <NavDropdown.Item as={Link} to="/suppliers">
-                <i className="fas fa-truck"></i> Nhà cung cấp
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/products">
-                <i className="fas fa-box"></i> Sản phẩm
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/categories">
-                <i className="fas fa-tags"></i> Danh mục
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item as={Link} to="/inventory">
-                <i className="fas fa-warehouse"></i> Kho hàng
-              </NavDropdown.Item>
-            </NavDropdown>
-            
-            <Nav.Link as={Link} to="/orders">
-              <i className="fas fa-shopping-cart"></i> Đơn hàng
-            </Nav.Link>
-            
-            <Nav.Link as={Link} to="/reports">
-              <i className="fas fa-chart-bar"></i> Báo cáo
-            </Nav.Link>
-          </Nav>
-          
-          <Nav>
-            <NavDropdown title={<><i className="fas fa-user"></i> Tài khoản</>} id="user-dropdown">
-              <NavDropdown.Item href="#action/3.1">
-                <i className="fas fa-user-edit"></i> Hồ sơ
-              </NavDropdown.Item>
-              <NavDropdown.Item href="#action/3.2">
-                <i className="fas fa-cog"></i> Cài đặt
-              </NavDropdown.Item>
-              <NavDropdown.Divider />
-              <NavDropdown.Item href="#action/3.3">
-                <i className="fas fa-sign-out-alt"></i> Đăng xuất
-              </NavDropdown.Item>
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+            {showDropdown && (
+              <div className="dropdown-menu">
+                <Link to="/" onClick={() => setShowDropdown(false)} className="dropdown-item">
+                  <span className="item-icon">🏠</span>
+                  Trang chủ
+                </Link>
+                {isAuthenticated && menuItems.map((item, index) => (
+                  <Link 
+                    key={index}
+                    to={item.path} 
+                    onClick={() => setShowDropdown(false)}
+                    className="dropdown-item"
+                  >
+                    <span className="item-icon">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Center - Logo */}
+        <div className="header-center">
+          <h1 className="system-title">SCM System</h1>
+        </div>
+
+        {/* Right side - Auth button */}
+        <div className="header-right">
+          {!isAuthenticated ? (
+            <Link to="/login" className="header-button auth-button">
+              Đăng nhập
+            </Link>
+          ) : (
+            <div className="user-menu">
+              <span className="user-greeting">Xin chào, {user?.displayName}</span>
+              <button onClick={handleLogout} className="header-button logout-button">
+                Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Dropdown overlay */}
+      {showDropdown && (
+        <div 
+          className="dropdown-overlay" 
+          onClick={() => setShowDropdown(false)}
+        ></div>
+      )}
+    </header>
   );
 };
 

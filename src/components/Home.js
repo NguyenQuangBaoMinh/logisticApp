@@ -1,92 +1,62 @@
 // src/components/Home.js
 import React from 'react';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import authService from '../services/authService';
 
 const Home = () => {
+  const isAuthenticated = authService.isAuthenticated();
+
+  const features = [
+    {
+      icon: '📦',
+      title: 'Quản lý Nhà Cung Cấp',
+      description: 'Quản lý thông tin, đánh giá và xếp hạng nhà cung cấp'
+    },
+    {
+      icon: '📋',
+      title: 'Quản lý Đơn Hàng',
+      description: 'Theo dõi đơn hàng từ khi tạo đến khi giao hàng'
+    },
+    {
+      icon: '🚚',
+      title: 'Vận Chuyển & Giao Hàng',
+      description: 'Lên lịch và theo dõi vận chuyển hiệu quả'
+    }
+  ];
+
   return (
-    <Container className="mt-5">
-      <Row className="text-center">
-        <Col>
-          <h1 className="display-4 text-primary mb-4">
-            Chào mừng đến với Hệ thống quản lý chuỗi cung ứng
-          </h1>
-          <p className="lead mb-5">
-            Quản lý nhà cung cấp, sản phẩm và đơn hàng hiệu quả
-          </p>
-        </Col>
-      </Row>
+    <div className="simple-home">
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-content">
+          <h1>Hệ thống Quản lý Chuỗi Cung Ứng</h1>
+          <p>Giải pháp tối ưu cho việc quản lý chuỗi cung ứng của doanh nghiệp</p>
+          {!isAuthenticated ? (
+            <Link to="/register" className="btn-primary-large">
+              Bắt đầu ngay
+            </Link>
+          ) : (
+            <Link to="/dashboard" className="btn-primary-large">
+              Vào Dashboard
+            </Link>
+          )}
+        </div>
+      </section>
 
-      <Row className="g-4">
-        <Col md={6} lg={3}>
-          <Card className="h-100">
-            <Card.Body className="text-center">
-              <h5 className="card-title">
-                <i className="fas fa-truck text-primary"></i><br />
-                Nhà cung cấp
-              </h5>
-              <p className="card-text">
-                Quản lý thông tin nhà cung cấp và đánh giá
-              </p>
-              <Button variant="primary" as={Link} to="/suppliers">
-                Xem chi tiết
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={6} lg={3}>
-          <Card className="h-100">
-            <Card.Body className="text-center">
-              <h5 className="card-title">
-                <i className="fas fa-tags text-success"></i><br />
-                Danh mục
-              </h5>
-              <p className="card-text">
-                Quản lý danh mục sản phẩm trong hệ thống
-              </p>
-              <Button variant="success" as={Link} to="/categories">
-                Xem chi tiết
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={6} lg={3}>
-          <Card className="h-100">
-            <Card.Body className="text-center">
-              <h5 className="card-title">
-                <i className="fas fa-box text-warning"></i><br />
-                Sản phẩm
-              </h5>
-              <p className="card-text">
-                Quản lý thông tin sản phẩm và tồn kho
-              </p>
-              <Button variant="warning" as={Link} to="/products">
-                Xem chi tiết
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col md={6} lg={3}>
-          <Card className="h-100">
-            <Card.Body className="text-center">
-              <h5 className="card-title">
-                <i className="fas fa-shopping-cart text-danger"></i><br />
-                Đơn hàng
-              </h5>
-              <p className="card-text">
-                Quản lý đơn hàng và theo dõi trạng thái
-              </p>
-              <Button variant="danger" as={Link} to="/orders">
-                Xem chi tiết
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+      {/* Features Section */}
+      <section className="features-section">
+        <h2>Tính năng chính</h2>
+        <div className="features-grid">
+          {features.map((feature, index) => (
+            <div key={index} className="feature-card">
+              <div className="feature-icon">{feature.icon}</div>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 };
 

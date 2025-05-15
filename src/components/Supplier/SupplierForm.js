@@ -1,8 +1,7 @@
 // src/components/Supplier/SupplierForm.js
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 
-const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title }) => {
+const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title, loading = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,7 +15,6 @@ const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title }) => {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (supplier && show) {
@@ -95,13 +93,10 @@ const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title }) => {
       return;
     }
 
-    setLoading(true);
     try {
       await onSubmit(formData);
     } catch (error) {
       console.error('Error submitting form:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -121,130 +116,147 @@ const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title }) => {
     onHide();
   };
 
+  if (!show) return null;
+
   return (
-    <Modal show={show} onHide={handleHide} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>{title}</Modal.Title>
-      </Modal.Header>
-      
-      <Form onSubmit={handleSubmit}>
-        <Modal.Body>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Tên nhà cung cấp <span className="text-danger">*</span></Form.Label>
-                <Form.Control
+    <div className="modal-overlay">
+      <div className="modal-container supplier-form-modal">
+        <div className="modal-header">
+          <h2>{title}</h2>
+          <button className="modal-close-btn" onClick={handleHide}>
+            ✕
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="supplier-form">
+          <div className="modal-body">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="name">
+                  Tên nhà cung cấp <span className="required">*</span>
+                </label>
+                <input
                   type="text"
+                  id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  isInvalid={!!errors.name}
+                  className={errors.name ? 'error' : ''}
                   placeholder="Nhập tên nhà cung cấp"
                 />
-                <Form.Control.Feedback type="invalid">
-                  {errors.name}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
+                {errors.name && (
+                  <div className="error-message">{errors.name}</div>
+                )}
+              </div>
 
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Email <span className="text-danger">*</span></Form.Label>
-                <Form.Control
+              <div className="form-group">
+                <label htmlFor="email">
+                  Email <span className="required">*</span>
+                </label>
+                <input
                   type="email"
+                  id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  isInvalid={!!errors.email}
+                  className={errors.email ? 'error' : ''}
                   placeholder="Nhập email"
                 />
-                <Form.Control.Feedback type="invalid">
-                  {errors.email}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
+                {errors.email && (
+                  <div className="error-message">{errors.email}</div>
+                )}
+              </div>
+            </div>
 
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Số điện thoại <span className="text-danger">*</span></Form.Label>
-                <Form.Control
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="phoneNumber">
+                  Số điện thoại <span className="required">*</span>
+                </label>
+                <input
                   type="text"
+                  id="phoneNumber"
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  isInvalid={!!errors.phoneNumber}
+                  className={errors.phoneNumber ? 'error' : ''}
                   placeholder="Nhập số điện thoại"
                 />
-                <Form.Control.Feedback type="invalid">
-                  {errors.phoneNumber}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
+                {errors.phoneNumber && (
+                  <div className="error-message">{errors.phoneNumber}</div>
+                )}
+              </div>
 
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Người liên hệ</Form.Label>
-                <Form.Control
+              <div className="form-group">
+                <label htmlFor="contactPerson">
+                  Người liên hệ
+                </label>
+                <input
                   type="text"
+                  id="contactPerson"
                   name="contactPerson"
                   value={formData.contactPerson}
                   onChange={handleChange}
                   placeholder="Nhập tên người liên hệ"
                 />
-              </Form.Group>
-            </Col>
-          </Row>
+              </div>
+            </div>
 
-          <Form.Group className="mb-3">
-            <Form.Label>Địa chỉ <span className="text-danger">*</span></Form.Label>
-            <Form.Control
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              isInvalid={!!errors.address}
-              placeholder="Nhập địa chỉ"
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.address}
-            </Form.Control.Feedback>
-          </Form.Group>
+            <div className="form-group">
+              <label htmlFor="address">
+                Địa chỉ <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className={errors.address ? 'error' : ''}
+                placeholder="Nhập địa chỉ"
+              />
+              {errors.address && (
+                <div className="error-message">{errors.address}</div>
+              )}
+            </div>
 
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Mã số thuế</Form.Label>
-                <Form.Control
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="taxCode">
+                  Mã số thuế
+                </label>
+                <input
                   type="text"
+                  id="taxCode"
                   name="taxCode"
                   value={formData.taxCode}
                   onChange={handleChange}
                   placeholder="Nhập mã số thuế"
                 />
-              </Form.Group>
-            </Col>
+              </div>
 
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Điều kiện thanh toán</Form.Label>
-                <Form.Control
+              <div className="form-group">
+                <label htmlFor="paymentTerms">
+                  Điều kiện thanh toán
+                </label>
+                <input
                   type="text"
+                  id="paymentTerms"
                   name="paymentTerms"
                   value={formData.paymentTerms}
                   onChange={handleChange}
                   placeholder="Nhập điều kiện thanh toán"
                 />
-              </Form.Group>
-            </Col>
-          </Row>
+              </div>
+            </div>
 
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Đánh giá</Form.Label>
-                <Form.Select
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="rating">
+                  Đánh giá
+                </label>
+                <select
+                  id="rating"
                   name="rating"
                   value={formData.rating}
                   onChange={handleChange}
@@ -254,34 +266,44 @@ const SupplierForm = ({ show, onHide, onSubmit, supplier = null, title }) => {
                   <option value={3}>3 ⭐⭐⭐</option>
                   <option value={4}>4 ⭐⭐⭐⭐</option>
                   <option value={5}>5 ⭐⭐⭐⭐⭐</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
+                </select>
+              </div>
 
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Check
-                  type="checkbox"
-                  name="active"
-                  checked={formData.active}
-                  onChange={handleChange}
-                  label="Trạng thái hoạt động"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-        </Modal.Body>
-        
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleHide} disabled={loading}>
-            Hủy
-          </Button>
-          <Button type="submit" variant="primary" disabled={loading}>
-            {loading ? 'Đang xử lý...' : (supplier ? 'Cập nhật' : 'Thêm mới')}
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
+              <div className="form-group">
+                <label className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    name="active"
+                    checked={formData.active}
+                    onChange={handleChange}
+                  />
+                  <span className="checkmark"></span>
+                  Trạng thái hoạt động
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div className="modal-footer">
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              onClick={handleHide} 
+              disabled={loading}
+            >
+              Hủy
+            </button>
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              disabled={loading}
+            >
+              {loading ? 'Đang xử lý...' : (supplier ? 'Cập nhật' : 'Thêm mới')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
